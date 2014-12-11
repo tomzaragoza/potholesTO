@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta name="viewport" content="initial-scale=1.0, user-scalable=no" />
+
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/2.1.0/jquery.min.js"></script>
+
+    <!-- Latest compiled and minified CSS -->
+    <link rel="stylesheet" href="/static/css/bootstrap.min.css">
+
+    <!-- Latest compiled and minified JavaScript -->
+    <script src="/static/js/bootstrap.min.js"></script>
+
+
+    <style type="text/css">
+      html { height: 100% }
+      body { height: 100%; margin: 0; padding: 0 }
+      #map-canvas { height: 100% }
+    </style>
+    <!-- Google Maps -->
+    <script type="text/javascript"
+      src="https://maps.googleapis.com/maps/api/js?key=AIzaSyA6ola9rBmis1fcbSkP5PfwSAZ6c3XhDhU&sensor=false">
+    </script>
+
+    <script type="text/javascript">
+      var markers = [];
+
+      function initialize() {
+
+        var mapOptions = {
+          center: new google.maps.LatLng(43.6417, -79.38729999999998),
+          zoom: 13,
+          mapTypeId: google.maps.MapTypeId.ROADMAP
+        };
+
+        var map = new google.maps.Map(document.getElementById("map-canvas"),
+            mapOptions);
+
+        $.get( "/potholes", function( data ) {
+              var serviceRequests = data.potholes;
+
+              var infowindow = new google.maps.InfoWindow();
+
+              for (var i = 0; i < serviceRequests.length; i++) {
+
+                var lat = Number(serviceRequests[i]['lat']);
+                var lng = Number(serviceRequests[i]['long']);
+                
+                var myLatlng = new google.maps.LatLng(lat, lng);
+
+                google.maps.event.addListener(map, 'click', function() {
+                  infowindow.close();
+                });
+
+                var setIconURL = '';
+
+                // Create the Marker to be pushed to Marker.
+                if (serviceRequests[i]['status'] === 'open') {
+                  setIconURL = 'http://maps.google.com/mapfiles/ms/icons/red-dot.png';
+                } else if (serviceRequests[i]['status'] === 'closed'){
+                  setIconURL = 'http://maps.google.com/mapfiles/ms/icons/blue-dot.png';
+                }
+
+                var marker = new google.maps.Marker({
+                    position: myLatlng,
+                    map: map,
+                    icon: setIconURL
+                });
+
+
+                google.maps.event.addListener(marker, 'click', (function(marker, i) {
+                  return function() {
+                    infowindow.setContent('<p><b>Location: </b>' + serviceRequests[i]['address'] + '</p>' +
+                                          '<p><b>Status: </b>' + serviceRequests[i]['status'] + '</p>');
+                    infowindow.open(map, marker)
+                  }
+                })(marker, i));
+
+                markers.push(marker);
+              }
+        });
+        var adUnitDiv = document.createElement('div');
+        var adUnitOptions = {
+          format: google.maps.adsense.AdFormat.LEADERBOARD,
+          position: google.maps.ControlPosition.BOTTOM,
+          backgroundColor: '#c4d4f3',
+          borderColor: '#e5ecf9',
+          titleColor: '#0000cc',
+          textColor: '#000000',
+          urlColor: '#009900',
+          map: map,
+          visible: true,
+          publisherId: 'pub-8309192969386361'
+        }
+        adUnit = new google.maps.adsense.AdUnit(adUnitDiv, adUnitOptions);
+
+      }
+
+
+      google.maps.event.addDomListener(window, 'load', initialize);
+    </script>
+  </head>
+  <body style="padding-top: 52px;">
+
+      <!-- Fixed navbar -->
+      <div class="navbar navbar-default navbar-fixed-top" role="navigation">
+        <div class="container">
+          <div class="navbar-header">
+            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+              <span class="sr-only">Toggle navigation</span>
+              <span class="icon-bar"></span>
+              <span class="icon-bar"></span>
+              <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="#">PotholesTO</a>
+          </div>
+          <div class="navbar-collapse collapse">
+            <ul class="nav navbar-nav">
+              <li class="active"><a href="#">Home</a></li>
+              <li><a href="#about">About</a></li>
+              <li><a href="#report">Report a Pothole</a></li>
+             <!--  <li class="dropdown">
+                <a href="#" class="dropdown-toggle" data-toggle="dropdown">Dropdown <b class="caret"></b></a>
+                <ul class="dropdown-menu">
+                  <li><a href="#">Action</a></li>
+                  <li><a href="#">Another action</a></li>
+                  <li><a href="#">Something else here</a></li>
+                  <li class="divider"></li>
+                  <li class="dropdown-header">Nav header</li>
+                  <li><a href="#">Separated link</a></li>
+                  <li><a href="#">One more separated link</a></li>
+                </ul>
+              </li> -->
+            </ul>
+            <ul class="nav navbar-nav navbar-right">
+              <li><a href="/map">Map</a></li>
+            </ul>
+          </div><!--/.nav-collapse -->
+        </div>
+      </div>
+
+    <div id="map-canvas">
+    </div>
+  </body>
+</html>
